@@ -52,6 +52,5 @@ class ArgumentsExplain(Arguments):
         self.multigraph_class = -1
         self.multinode_class = -1
         
-        self.align_steps = 1000
         self.mask_activation = 'sigmoid'
         self.mask_bias = True

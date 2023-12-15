@@ -133,7 +133,7 @@ class ExplainerModule(nn.Module):
             pred: prediction made by current model
             pred_label: the label predicted by the original model.
         """
-        mi_obj = False
+        mi_obj = True
         if mi_obj:
             pred_loss = -torch.sum(pred * torch.log(pred))
         else:
@@ -169,6 +169,7 @@ class ExplainerModule(nn.Module):
         feeat_mask_entropy_loss = self.coeffs['feat_ent'] * torch.mean(feat_mask_entropy)
         
         # laplacian
+        
         D = torch.diag(torch.sum(self.masked_adj[0], 0))
         
         if self.graph_mode:
@@ -184,7 +185,7 @@ class ExplainerModule(nn.Module):
         else:
             lap_loss = (self.coeffs["lap"] * (pred_label_t @ L @ pred_label_t) / self.adj.numel())
         
-        loss = pred_loss + size_loss + lap_loss + mask_entropy_loss + feat_size_loss
+        loss = pred_loss + size_loss
         
         if self.writer is not None:
             raise Exception("writer not implemented")
@@ -255,7 +256,7 @@ class Explainer:
         self.writer = writer
         self.print_training = print_training
         self.device = device
-        
+    
     # Main ------------------------------------------------------------------------
     def explain(self, 
                 node_idx: int, 
@@ -270,9 +271,7 @@ class Explainer:
         if graph_mode:
             raise Exception("Graph mode not implemented")
         else:
-            print("node label:", self.labels[graph_idx][node_idx])
             node_idx_new, sub_adj, sub_feat, sub_labels, neighbors = self.extract_neighborhood(node_idx, graph_idx)
-            print("neighbor graph index:", node_idx, node_idx_new)
             
         sub_labels = np.expand_dims(sub_labels, axis=0)
         sub_adj = np.expand_dims(sub_adj, axis=0)
@@ -339,6 +338,7 @@ class Explainer:
             
             print("finished training in ", time.time() - begin_time)
             if model == "exp":
+                print(explainer.masked_adj.shape, sub_adj.shape)
                 masked_adj = (explainer.masked_adj[0].cpu().detach().numpy() * sub_adj.squeeze())
             else:
                 adj_atts = nn.functional.sigmoid(adj_atts).squeeze()
@@ -357,7 +357,6 @@ class Explainer:
         """
         Returns the neighborhood of a given node
         """
-        
         neighbors_adj_row = self.neighborhoods[graph_idx][node_idx, :]
         # index of the query node in the new adj
         node_idx_new = sum(neighbors_adj_row[:node_idx])

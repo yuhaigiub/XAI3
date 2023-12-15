@@ -5,7 +5,8 @@
 import torch
 
 def neighborhoods(adj, n_hops):
-    """Returns the n_hops degree adjacency matrix adj."""
+    """Returns the n_hops degree adjacency matrix"""
+    print('adj size:', adj.shape)
     adj = torch.tensor(adj, dtype=torch.float32)
     hop_adj = power_adj = adj
     
@@ -15,3 +16,4 @@ def neighborhoods(adj, n_hops):
         hop_adj = hop_adj + power_adj
         hop_adj = (hop_adj > 0).float()
     return hop_adj.cpu().numpy().astype(int)
+

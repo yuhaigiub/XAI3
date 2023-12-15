@@ -53,7 +53,7 @@ def save_ckpt(model,
 
 def create_filename(save_dir, args: Arguments, is_best=False, num_epochs=-1):
     filename = os.path.join(save_dir, gen_prefix(args))
-    os.makedirs(filename, exist_ok=True)
+    # os.makedirs(filename, exist_ok=True)
     
     if is_best:
         filename = os.path.join(filename, 'best')

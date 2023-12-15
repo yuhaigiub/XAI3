@@ -47,6 +47,7 @@ def syn_task1(args: ArgumentsTrain, device, writer):
     
     print(G)
     print('number of classes:', num_classes)
+    print('labels size:', len(labels))
     
     if args.method == 'att':
         raise Exception('Attribution method not implemented')
@@ -83,6 +84,7 @@ def train_node_classifier(device,
     labels_train = torch.tensor(data['labels'][:, train_idx], dtype=torch.long).to(device)
     adj = torch.tensor(data['adj'], dtype=torch.float32).to(device)
     x = torch.tensor(data['feat'], dtype=torch.float32, requires_grad=True).to(device)
+    
     scheduler, optimizer = train_utils.build_optimizer(args, model.parameters())
     print('number of parameters:', len(list(model.parameters())))
     
