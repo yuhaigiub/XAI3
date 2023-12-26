@@ -50,7 +50,6 @@ def load_dataset(dataset_dir, batch_size, valid_batch_size=None, test_batch_size
         mean = data['x_train'][..., 0].mean()
         std = data['x_train'][..., 0].std()
         scaler = StandardScaler(mean, std)
-
     
     for category in ['train', 'val', 'test']:
         if apply_scaling:
@@ -131,7 +130,8 @@ def denoise_graph(adj,
     G.nodes[node_idx]["self"] = 1
     
     if feat is not None:
-        raise NotImplementedError
+        # raise NotImplementedError
+        pass
     if labels is not None:
         raise NotImplementedError
     

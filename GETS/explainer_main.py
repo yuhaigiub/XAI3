@@ -69,12 +69,13 @@ def main():
                           model=model,
                           adj=adj_mx,
                           feat=trainx,
-                          pred=pred,
+                          pred=pred_scaled,
                           args=args,
-                          graph_mode=args.graph_mode, 
-                          writer=writer)
+                          graph_mode=args.graph_mode,
+                          writer=writer,
+                          scaler=scaler)
     
-    explainer.explain(20)
+    explainer.explain(69)
 
 if __name__ == '__main__':
     main()

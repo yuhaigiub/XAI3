@@ -36,6 +36,6 @@ class ArgumentsExplain(Arguments):
         self.lr = 0.1
         self.weight_decay = 0.0
         
-        self.graph_mode = False
+        self.graph_mode = True
         self.mask_bias = True
         self.mask_activation = 'sigmoid'

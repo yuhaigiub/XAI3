@@ -395,7 +395,7 @@ class GenericBlock(Block):
                                            share_thetas, 
                                            use_graph)
         
-        self.forecast_time = nn.Conv2d(backcast_length, forecast_length, kernel_size=(1, 1))
+        self.forecast_time = nn.Conv2d(backcast_length, forecast_length, kernel_size=(1, 1))    
         
         if not use_graph:
             self.backcast_fc = nn.Conv2d(hidden_channels, out_channels, kernel_size=(1, 1))
