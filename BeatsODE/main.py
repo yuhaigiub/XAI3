@@ -19,7 +19,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=0.005)
     print('number of parameters:', len(list(model.parameters())))
     
-    for epoch in range(5):
+    for epoch in range(1):
         for i, (x, y) in enumerate(dataloader['train_loader'].get_iterator()):
             optimizer.zero_grad()
             

@@ -10,19 +10,18 @@ from layers import GraphConv, Linear
 class Block(nn.Module):
     def __init__(self, 
                  device, 
-                 in_dim, 
-                 out_dim, 
+                 in_dim,
+                 out_dim,
                  time_steps, 
-                 theta_dim, 
-                 hidden_dim=32):
+                 theta_dim):
         super(Block, self).__init__()
         self.device = device
         
-        self.fc = Linear(in_dim, hidden_dim)
-        self.block_ode = BlockODE(hidden_dim)
+        self.fc = Linear(in_dim, out_dim)
+        self.block_ode = BlockODE(out_dim)
         
-        self.backcast_linspace = linear_space_multi(time_steps)
-        self.forecast_linspace = linear_space_multi(time_steps)    
+        self.backcast_linspace = linear_space(time_steps)
+        self.forecast_linspace = linear_space(time_steps)    
         
         self.theta_f_fc = Linear(time_steps, theta_dim)
         self.theta_b_fc = Linear(time_steps, theta_dim)
@@ -40,7 +39,7 @@ class Block(nn.Module):
         time = torch.tensor([0, 1], dtype=torch.float32).to(self.device)
         
         x = self.fc(x)
-        x = odeint(self.block_ode, x, time, method='euler', options=dict(step_size=0.25))[-1]
+        x = odeint(self.block_ode, x, time, method='euler', options=dict(step_size=0.1))[-1]
         
         return x
 
@@ -69,7 +68,7 @@ class BlockODE(nn.Module):
 
 class TrendBlock(Block):
     def __init__(self, device, in_dim, out_dim, time_steps, theta_dim, hidden_dim=32):
-        super(TrendBlock, self).__init__(device, in_dim, out_dim, time_steps, theta_dim, hidden_dim)
+        super(TrendBlock, self).__init__(device, in_dim, hidden_dim, time_steps, theta_dim)
         self.gcn = GraphConv(hidden_dim, out_dim)
         
         initialize_gcn_parameters(self)
@@ -93,7 +92,7 @@ class TrendBlock(Block):
 
 class SeasonalityBlock(Block):
     def __init__(self, device, in_dim, out_dim, time_steps, theta_dim, hidden_dim=32):
-        super(SeasonalityBlock, self).__init__(device, in_dim, out_dim, time_steps, theta_dim, hidden_dim)
+        super(SeasonalityBlock, self).__init__(device, in_dim, hidden_dim, time_steps, theta_dim)
         self.gcn = GraphConv(hidden_dim, out_dim)
         
         initialize_gcn_parameters(self)
@@ -117,7 +116,7 @@ class SeasonalityBlock(Block):
 
 class GenericBlock(Block):
     def __init__(self, device, in_dim, out_dim, time_steps, theta_dim, hidden_dim=32):
-        super(GenericBlock, self).__init__(device, in_dim, out_dim, time_steps, theta_dim, hidden_dim)
+        super(GenericBlock, self).__init__(device, in_dim, hidden_dim, time_steps, theta_dim)
         self.backcast_gcn = GraphConv(hidden_dim, out_dim)
         self.forecast_gcn = GraphConv(hidden_dim, out_dim)
         self.relu = nn.ReLU()
@@ -168,7 +167,7 @@ class BeatsODE(nn.Module):
                  time_steps,
                  n_stacks=3,
                  theta_dims=[4, 8, 4], 
-                 stack_types=['TREND', 'SEASONALITY', 'GENERIC']):
+                 stack_types=['GENERIC', 'GENERIC', 'GENERIC']):
         super(BeatsODE, self).__init__()
         self.device = device
         
@@ -187,7 +186,7 @@ class BeatsODE(nn.Module):
             b, f = stack(backcast)
             
             backcast = backcast - b
-            forecast = forecast + f
+            forecast = f
         
         return backcast, forecast
 
@@ -201,7 +200,6 @@ def trend_model(thetas: Tensor, t: Tensor, device):
 
 def seasonality_model(thetas: Tensor, t: Tensor, device):
     p = thetas.size()[-1] # theta_dim
-    assert p <= thetas.shape[-1], 'theta_dim is too big'
     
     p1, p2 = (p // 2, p // 2) if p % 2 == 0 else (p // 2, p // 2 + 1)
     
@@ -211,7 +209,7 @@ def seasonality_model(thetas: Tensor, t: Tensor, device):
     
     return torch.einsum('abcd, dy -> abcy',thetas, S.to(device))
 
-def linear_space_multi(time_steps):
+def linear_space(time_steps):
     t = np.arange(0, time_steps) / time_steps
     return t
 
